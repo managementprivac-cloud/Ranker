@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Video Content Ranker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0d0d12;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .ranker-container {
+            background: #16161f;
+            border: 1px solid #232330;
+            border-radius: 20px;
+            padding: 25px 20px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        .trending-badge {
+            background: linear-gradient(90deg, #ff0050 0%, #00f2fe 100%);
+            color: #000;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .instructions {
+            color: #9494a6;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        /* Responsive Video Container Box */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 177.77%; /* Strict 9:16 Aspect Ratio for Vertical Video (TikTok/Shorts) */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Voting System Options Layout */
+        .voting-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .vote-btn {
+            background: #21212e;
+            border: 1px solid #323247;
+            color: #fff;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .vote-btn:hover {
+            border-color: #00f2fe;
+            background: rgba(0, 242, 254, 0.03);
+        }
+
+        .percentage {
+            color: #00f2fe;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        /* Loading / Processing Interface Screen */
+        .console-box {
+            background: #09090d;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 13px;
+            display: none;
+        }
+
+        .console-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #a1a1a6;
+            margin-bottom: 6px;
+        }
+
+        .loader {
+            width: 12px;
+            height: 12px;
+            border: 2px solid #222;
+            border-top: 2px solid #ff0050;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .check-icon { color: #00f2fe; font-weight: bold; }
+
+        /* Main Master Button */
+        .submit-action-btn {
+            display: block;
+            background: #ffffff;
+            color: #000000;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ranker-container">
+        <div class="trending-badge">Media Ranker Pool</div>
+        
+        <h1>Rate This Uncut Clip</h1>
+        <p class="instructions">Watch the stream below and lock in your vote submission to unlock the full uncut collection vault.</p>
+
+        <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/" allowfullscreen></iframe>
+        </div>
+
+        <div class="voting-box" id="voteOptions">
+            <button class="vote-btn" onclick="selectOption('Epic Edit')">
+                <span>🔥 Epic Edit / 10 out of 10</span>
+                <span class="percentage">64%</span>
+            </button>
+            <button class="vote-btn" onclick="selectOption('Clean Cuts')">
+                <span>⚡ Clean Cuts / Good Pace</span>
+                <span class="percentage">28%</span>
+            </button>
+            <button class="vote-btn" onclick="selectOption('Needs Work')">
+                <span>⚠️ Average / Needs Work</span>
+                <span class="percentage">8%</span>
+            </button>
+        </div>
+
+        <div class="console-box" id="consoleBox">
+            <div class="console-row" id="row1">
+                <span class="loader" id="load1"></span><span class="check-icon" id="mark1" style="display:none;">✓</span>
+                <span id="txt1">Registering selection on database...</span>
+            </div>
+            <div class="console-row" id="row2" style="opacity: 0.3;">
+                <span class="loader" id="load2" style="display:none;"></span>
+                <span id="txt2">Automated system check holding... Required human verification.</span>
+            </div>
+        </div>
+
+        <button id="masterBtn" class="submit-action-btn" onclick="triggerInitialAlert()">
+            Select Option To Vote
+        </button>
+    </div>
+
+    <script>
+        var userChoice = "";
+
+        function triggerInitialAlert() {
+            if(userChoice === "") {
+                alert("Please tap on one of the ranking options above to cast your vote first!");
+            }
+        }
+
+        function selectOption(choice) {
+            userChoice = choice;
+            
+            // UI Component Transitions
+            document.getElementById('voteOptions').style.opacity = "0.4";
+            document.getElementById('voteOptions').style.pointerEvents = "none";
+            document.getElementById('consoleBox').style.display = "block";
+            
+            var actionBtn = document.getElementById('masterBtn');
+            actionBtn.style.pointerEvents = "none";
+            actionBtn.innerText = "Encrypting Vote...";
+            actionBtn.style.background = "#21212e";
+            actionBtn.style.color = "#888";
+
+            // Processing Pipeline Stage 1
+            setTimeout(function() {
+                document.getElementById('load1').style.display = "none";
+                document.getElementById('mark1').style.display = "inline";
+                document.getElementById('txt1').style.color = "#00f2fe";
+                
+                document.getElementById('row2').style.opacity = "1";
+                document.getElementById('load2').style.display = "inline-block";
+            }, 1500);
+
+            // Processing Pipeline Stage 2 -> Forces Unlock Redirection State
+            setTimeout(function() {
+                document.getElementById('load2').style.display = "none";
+                
+                actionBtn.innerText = "Verify & Access Vault";
+                actionBtn.style.pointerEvents = "auto";
+                actionBtn.style.background = "linear-gradient(90deg, #ff0050 0%, #00f2fe 100%)";
+                actionBtn.style.color = "#000000";
+                
+                // YOUR CPAGRIP TARGET LINK ACTIVATES DIRECTLY HERE
+                actionBtn.onclick = function() {
+                    window.location.href = "https://singingfiles.com/show.php?l=0&u=2411382&id=74819";
+                };
+            }, 3200);
+        }
+    </script>
+
+</body>
+</html>
+
